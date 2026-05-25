@@ -1,0 +1,45 @@
+# Virtual environment
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Large medical data files
+*.nii.gz
+*.nii
+*.dcm
+
+# Data folders with large files
+All_Series_Nifti/
+All_Series_Masks/
+Nifti_Volumes/
+Liver_Masks/
+Cropped_Data/All_Series_CT/
+Cropped_Data/All_Series_Masks/
+Cropped_Data/CT/
+Cropped_Data/Masks/
+Cropped_Data/*.pth
+
+# Patient DICOM folders (Hebrew names and others)
+מטופל*/
+פציינט*/
+
+# Visualization output folders (large per-patient PNGs)
+series_per_patient/
+all_series_2d/
+all_series_3d/
+all_series_gif/
+not_relevant/
+finalProject/
+
+# IDE
+.idea/
+.claude/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
