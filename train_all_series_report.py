@@ -182,10 +182,21 @@ def metrics(y_true, y_pred, y_prob=None):
 
 # ── Patient-Level LOOCV ───────────────────────────────────────────────────────
 
-def run_patient_loocv(X, y, groups, feat_idx, clf_name):
+def _series_weight(series_name):
+    """Weight = 1/rank. s01 -> 1.0, s02 -> 0.5, s05 -> 0.2, etc."""
+    import re
+    m = re.search(r"_s(\d+)$", series_name)
+    rank = int(m.group(1)) if m else 99
+    return 1.0 / rank
+
+
+def run_patient_loocv(X, y, groups, feat_idx, clf_name, series_names=None, weighted=True):
     """
     Leave-one-PATIENT-out: all series of the held-out patient form the test set.
-    Patient-level prediction = average probability across that patient's series.
+
+    Patient-level prediction:
+      weighted=True  -> weighted average by 1/series_rank (s01 counts most)
+      weighted=False -> simple average probability (original behaviour)
     """
     unique_patients = list(dict.fromkeys(groups))
     val_true, val_pred, val_prob = [], [], []
@@ -213,10 +224,17 @@ def run_patient_loocv(X, y, groups, feat_idx, clf_name):
 
         clf = make_clf(clf_name)
         clf.fit(Xf_aug, y_aug)
-        proba    = clf.predict_proba(Xf_te_s)
-        avg_prob = float(proba[:, 1].mean()) if proba.shape[1] == 2 else 0.5
-        pred     = int(avg_prob >= 0.5)
+        proba = clf.predict_proba(Xf_te_s)
+        probs = proba[:, 1] if proba.shape[1] == 2 else np.full(len(Xf_te_s), 0.5)
 
+        if weighted and series_names is not None:
+            test_series = [series_names[i] for i, m in enumerate(test_mask) if m]
+            weights = np.array([_series_weight(s) for s in test_series])
+            avg_prob = float(np.average(probs, weights=weights))
+        else:
+            avg_prob = float(probs.mean())
+
+        pred = int(avg_prob >= 0.5)
         val_true.append(true_label); val_pred.append(pred); val_prob.append(avg_prob)
         fold_log.append((patient, true_label, pred, avg_prob))
 
@@ -535,11 +553,14 @@ if __name__ == "__main__":
     print(f"PATIENT-LEVEL LOOCV  ({len(unique_patients)} folds, 4 train + 1 test)")
     print(f"{'='*65}\n")
 
+    series_names = df["series"].tolist()
+
     results = []
     for label, feat_idx, clf_name in combinations:
         print(f"  {label:<32}", end=" ", flush=True)
         acc, sens, spec, auc, f1, fold_log = run_patient_loocv(
-            X_clean, y_all, groups, feat_idx, clf_name)
+            X_clean, y_all, groups, feat_idx, clf_name,
+            series_names=series_names, weighted=True)
         results.append({"Model": label, "Acc": acc,
                         "Sens": sens, "Spec": spec, "AUC": auc, "F1": f1,
                         "fold_log": fold_log})
@@ -551,7 +572,7 @@ if __name__ == "__main__":
     results.sort(key=lambda r: (0 if np.isnan(r["F1"])  else r["F1"],
                                 0 if np.isnan(r["AUC"]) else r["AUC"]), reverse=True)
     print(f"\n{'='*72}")
-    print("SUMMARY TABLE  (sorted by F1 ↓)")
+    print("SUMMARY TABLE  (sorted by F1 desc)")
     print(f"{'='*72}")
     print(f"  {'#':>3}  {'Model':<30} {'Acc':>5} {'Sens':>6} {'Spec':>6} "
           f"{'AUC':>7} {'F1':>7}  Valid")

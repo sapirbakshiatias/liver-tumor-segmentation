@@ -29,6 +29,7 @@ from imblearn.over_sampling import SMOTE, RandomOverSampler
 from train_all_series_report import (
     clean_features, cv_filter, compute_icc,
     select_varfs, select_anova, augment, metrics,
+    _series_weight,
     OUT_DIR,
 )
 
@@ -92,7 +93,7 @@ def train_one(X_np, y_np, seed=42):
 
 # ── Patient-Level LOOCV ───────────────────────────────────────────────────────
 
-def run_patient_loocv_attention(X, y, groups, feat_idx):
+def run_patient_loocv_attention(X, y, groups, feat_idx, series_names=None, weighted=True):
     unique_patients = list(dict.fromkeys(groups))
     val_true, val_pred, val_prob = [], [], []
     fold_log   = []
@@ -125,7 +126,16 @@ def run_patient_loocv_attention(X, y, groups, feat_idx):
             attn_runs.append(model.get_attention(
                 torch.tensor(Xf_tr_s, dtype=torch.float32)))
 
-        avg_prob  = float(np.mean([p.mean() for p in probs_runs]))
+        # Per-series probs (one per seed averaged)
+        per_series_probs = np.mean(probs_runs, axis=0)  # shape: (n_test_series,)
+
+        if weighted and series_names is not None:
+            test_series = [series_names[i] for i, m in enumerate(test_mask) if m]
+            weights     = np.array([_series_weight(s) for s in test_series])
+            avg_prob    = float(np.average(per_series_probs, weights=weights))
+        else:
+            avg_prob = float(per_series_probs.mean())
+
         pred      = int(avg_prob >= 0.5)
         mean_attn = np.mean(attn_runs, axis=0)
 
@@ -175,11 +185,12 @@ def plot_attention_weights(feat_names_varfs, attn_varfs,
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    df        = pd.read_csv(CSV_PATH)
-    feat_cols = [c for c in df.columns if c not in ("series","patient","group","label")]
-    groups    = df["group"].tolist()
-    y_all     = df["label"].values.astype(int)
-    X_raw     = df[feat_cols].values.astype(float)
+    df           = pd.read_csv(CSV_PATH)
+    feat_cols    = [c for c in df.columns if c not in ("series","patient","group","label")]
+    groups       = df["group"].tolist()
+    series_names = df["series"].tolist()
+    y_all        = df["label"].values.astype(int)
+    X_raw        = df[feat_cols].values.astype(float)
 
     X_clean, fnames = clean_features(X_raw, list(feat_cols))
     cv_keep         = cv_filter(X_clean, fnames)
@@ -209,7 +220,8 @@ if __name__ == "__main__":
         print(f"{'='*60}")
 
         acc, sens, spec, auc, f1, fold_log, mean_attn = \
-            run_patient_loocv_attention(X_clean, y_all, groups, feat_idx)
+            run_patient_loocv_attention(X_clean, y_all, groups, feat_idx,
+                                        series_names=series_names, weighted=True)
 
         print(f"\nPer-patient results:")
         print(f"  {'Patient':<15} {'True':>8} {'Pred':>8} {'Prob':>7} {'Result'}")
