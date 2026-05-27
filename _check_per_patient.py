@@ -8,11 +8,12 @@ from train_all_series_report import (
 )
 
 CSV_PATH = r"C:\Users\ronin\PycharmProjects\PFinalproject\Cropped_Data\all_series_radiomics.csv"
-df       = pd.read_csv(CSV_PATH)
-feat_cols = [c for c in df.columns if c not in ("series","patient","group","label")]
-groups    = df["group"].tolist()
-y_all     = df["label"].values.astype(int)
-X_raw     = df[feat_cols].values.astype(float)
+df           = pd.read_csv(CSV_PATH)
+feat_cols    = [c for c in df.columns if c not in ("series","patient","group","label")]
+groups       = df["group"].tolist()
+series_names = df["series"].tolist()
+y_all        = df["label"].values.astype(int)
+X_raw        = df[feat_cols].values.astype(float)
 
 X_clean, fnames = clean_features(X_raw, list(feat_cols))
 cv_keep         = cv_filter(X_clean, fnames)
@@ -36,7 +37,8 @@ print("-" * len(header))
 
 for label, feat_idx, clf_name in combinations:
     _, _, _, _, _, fold_log = run_patient_loocv(
-        X_clean, y_all, groups, feat_idx, clf_name)
+        X_clean, y_all, groups, feat_idx, clf_name,
+        series_names=series_names, weighted=True)
     row = {p: (tl, pl, pr) for p, tl, pl, pr in fold_log}
     line = f"{label:<30}"
     for p in PATIENTS:
