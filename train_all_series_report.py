@@ -33,12 +33,13 @@ import seaborn as sns
 import plotly.graph_objects as go
 from scipy import ndimage
 from skimage.feature import graycomatrix, graycoprops
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_selection import f_classif
 from sklearn.metrics import roc_auc_score
@@ -137,16 +138,21 @@ def select_anova(X, y, fnames, cv_keep, k=N_FEATURES):
 
 def make_clf(name):
     clfs = {
-        "RandomForest": RandomForestClassifier(n_estimators=RF_ESTIMATORS,
-                            class_weight="balanced", random_state=42),
-        "SVM":          SVC(kernel="rbf", C=1.0, class_weight="balanced",
-                            probability=True, random_state=42),
-        "LogisticRegr": LogisticRegression(class_weight="balanced",
-                            max_iter=1000, random_state=42),
-        "KNN":          KNeighborsClassifier(n_neighbors=3),
-        "NaiveBayes":   GaussianNB(),
-        "DecisionTree": DecisionTreeClassifier(max_depth=3,
-                            class_weight="balanced", random_state=42),
+        "RandomForest":   RandomForestClassifier(n_estimators=RF_ESTIMATORS,
+                              class_weight="balanced", random_state=42),
+        "SVM":            SVC(kernel="rbf", C=1.0, class_weight="balanced",
+                              probability=True, random_state=42),
+        "LogisticRegr":   LogisticRegression(class_weight="balanced",
+                              max_iter=1000, random_state=42),
+        "KNN":            KNeighborsClassifier(n_neighbors=3),
+        "NaiveBayes":     GaussianNB(),
+        "DecisionTree":   DecisionTreeClassifier(max_depth=3,
+                              class_weight="balanced", random_state=42),
+        "GradientBoost":  GradientBoostingClassifier(n_estimators=100,
+                              max_depth=3, learning_rate=0.1, random_state=42),
+        "MLP":            MLPClassifier(hidden_layer_sizes=(32, 16),
+                              max_iter=500, random_state=42,
+                              early_stopping=True, validation_fraction=0.15),
     }
     return clfs[name]
 
