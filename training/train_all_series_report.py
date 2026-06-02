@@ -6,6 +6,9 @@ Patient-Level LOOCV — Main runner.
 Run: .venv\Scripts\python.exe train_all_series_report.py
 """
 
+import sys, os; sys.path.insert(0, r"C:\Users\ronin\PycharmProjects\PFinalproject")
+
+
 # ── Re-exports (שאר הקבצים מייבאים מכאן) ────────────────────────────────────
 from pipeline.data_preparation import (
     clean_features, cv_filter, compute_icc,
