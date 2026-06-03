@@ -1,12 +1,13 @@
 """
-Decision Tree.
+Decision Tree — interpretable IF-THEN rules.
 
-עץ החלטה בעומק מקסימלי 3 — ליצור כללי IF-THEN פשוטים.
-max_depth=3: מגביל overfitting עם מעט נתונים.
+max_depth=3 limits overfitting with small data (n=28 series).
+The tree can be inspected to see which feature splits discriminate best.
 """
 from sklearn.tree import DecisionTreeClassifier
 
 NAME = "DecisionTree"
+
 
 def make_clf():
     return DecisionTreeClassifier(

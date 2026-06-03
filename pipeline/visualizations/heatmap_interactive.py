@@ -1,5 +1,8 @@
 """
-Plotly heatmap אינטרקטיבי עם hover info (נשמר כ-HTML).
+Interactive Plotly heatmap saved as HTML.
+
+Hover over any cell to see the raw feature value and Z-score.
+Useful for exploring which series deviate most from the group mean.
 """
 import numpy as np
 import plotly.graph_objects as go

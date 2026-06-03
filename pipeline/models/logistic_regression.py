@@ -1,12 +1,15 @@
 """
-Logistic Regression.
+Logistic Regression — linear classifier.
 
-מודל לינארי פשוט — מחשב הסתברות לפי צירוף לינארי של הפיצ'רים.
-max_iter=1000: יותר איטרציות לכינוס עם נתונים קטנים.
+Computes cancer probability as a sigmoid of a linear combination of features.
+With rank-based weighting, VaRFS+LogisticRegr starts misclassifying
+Patient_1 and Patient_KB as FN — the linear boundary is less robust
+than KNN's local neighborhood decision.
 """
 from sklearn.linear_model import LogisticRegression
 
 NAME = "LogisticRegr"
+
 
 def make_clf():
     return LogisticRegression(

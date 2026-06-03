@@ -1,7 +1,10 @@
 """
-חישוב ICC — Intraclass Correlation Coefficient.
-מודד עקביות של פיצ'ר בין שתי סריקות של אותו מטופל.
-ICC קרוב ל-1 = פיצ'ר אמין. ICC קרוב ל-0 = פיצ'ר רועש.
+Intraclass Correlation Coefficient (ICC).
+
+Measures how reproducible a feature is across two scans of the same patient.
+ICC close to 1 = reliable feature. ICC close to 0 = noisy, scan-dependent.
+
+ICC pairs: Patient_X_Before vs Patient_X_After (same liver, different scan date).
 """
 import numpy as np
 
@@ -13,17 +16,19 @@ ICC_PAIR_KEYS = [
 
 
 def compute_icc(df, fnames):
+    """Compute ICC for each feature using the before/after scan pairs."""
     B_rows, A_rows = [], []
     for b_key, a_key in ICC_PAIR_KEYS:
         b = df[df["patient"] == b_key]
         a = df[df["patient"] == a_key]
         if b.empty or a.empty:
             continue
+        # Average across all series for each patient-phase
         B_rows.append(b[fnames].mean().values)
         A_rows.append(a[fnames].mean().values)
 
     if len(B_rows) < 2:
-        return np.ones(len(fnames))
+        return np.ones(len(fnames))  # not enough pairs — assume full reliability
 
     B = np.array(B_rows)
     A = np.array(A_rows)

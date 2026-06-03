@@ -1,13 +1,13 @@
 """
-Gradient Boosting.
+Gradient Boosting — sequential ensemble of shallow trees.
 
-בונה עצים ברצף — כל עץ מתקן את שגיאות הקודם.
-learning_rate=0.1: צעדים קטנים למניעת overfitting.
-max_depth=3: עצים רדודים ליציבות.
+Each tree corrects the residual errors of the previous one.
+learning_rate=0.1 and max_depth=3 prevent overfitting on small data.
 """
 from sklearn.ensemble import GradientBoostingClassifier
 
 NAME = "GradientBoost"
+
 
 def make_clf():
     return GradientBoostingClassifier(

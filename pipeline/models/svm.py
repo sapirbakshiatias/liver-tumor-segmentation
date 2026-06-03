@@ -1,13 +1,14 @@
 """
-Support Vector Machine — RBF kernel.
+Support Vector Machine with RBF kernel.
 
-מחפש hyperplane שמפריד בין קבוצות במרחב הפיצ'רים.
-C=1.0: איזון בין margin רחב לשגיאות אימון.
-probability=True: ממיר decision function להסתברויות (Platt scaling).
+Finds the maximum-margin hyperplane separating Cancer from Healthy
+in the 5-dimensional feature space.
+probability=True enables Platt scaling to convert decision scores to probabilities.
 """
 from sklearn.svm import SVC
 
 NAME = "SVM"
+
 
 def make_clf():
     return SVC(

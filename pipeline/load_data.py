@@ -1,5 +1,6 @@
 """
-טעינת נתונים מה-CSV.
+Load radiomics data from CSV.
+Returns the dataframe plus the arrays needed for training.
 """
 import numpy as np
 import pandas as pd

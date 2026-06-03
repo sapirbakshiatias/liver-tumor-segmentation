@@ -1,6 +1,14 @@
 """
-גרף עמודות: F-score ו-ICC לכל פיצ'ר.
-צבע לפי שיטת בחירה: VaRFS בלבד / ANOVA בלבד / שניהם / לא נבחר.
+Bar chart comparing F-score and ICC for all features.
+
+Color coding:
+  Orange = selected by both VaRFS and ANOVA
+  Blue   = selected by VaRFS only
+  Green  = selected by ANOVA only
+  Gray   = not selected by either
+
+This chart explains why sagittal_glcm_dissimilarity appears in VaRFS
+(high ICC) but not in ANOVA (low F-score alone).
 """
 import numpy as np
 import matplotlib
@@ -26,8 +34,15 @@ def plot_feature_importance(fnames, f_scores, icc_vals, varfs_idx, anova_idx, ou
     scols    = [colors[i] for i in sort_idx]
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
-    ax1.barh(snames, sscores, color=scols); ax1.set_xlabel("F-score"); ax1.invert_yaxis()
-    ax2.barh(snames, sicc,    color=scols); ax2.set_xlabel("ICC");     ax2.invert_yaxis()
+    ax1.barh(snames, sscores, color=scols)
+    ax1.set_xlabel("F-score (ANOVA)")
+    ax1.set_title("Feature F-scores", fontweight="bold")
+    ax1.invert_yaxis()
+
+    ax2.barh(snames, sicc, color=scols)
+    ax2.set_xlabel("ICC (reproducibility)")
+    ax2.set_title("Feature ICC", fontweight="bold")
+    ax2.invert_yaxis()
 
     fig.legend(handles=[
         mpatches.Patch(color="#FF6F00", label="Both"),

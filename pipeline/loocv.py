@@ -1,8 +1,14 @@
 """
-Leave-One-Patient-Out Cross Validation.
+Leave-One-Patient-Out Cross Validation (LOOCV).
 
-בכל fold: כל הסדרות של מטופל אחד = test, השאר = train.
-ניבוי מטופל = ממוצע משוקלל של הסתברויות הסדרות (1/rank).
+Protocol:
+  - 5 folds, one per patient
+  - Each fold: all series of one patient = test, remaining 4 patients = train
+  - No data leakage: the held-out patient's data never touches the scaler or augmentation
+
+Patient-level prediction:
+  weighted=True  -> weighted average by 1/series_rank (s01 counts most)
+  weighted=False -> simple average (used as baseline before the fix)
 """
 import numpy as np
 from sklearn.preprocessing import StandardScaler
@@ -15,6 +21,7 @@ from pipeline.models        import make_clf
 
 def run_patient_loocv(X, y, groups, feat_idx, clf_name,
                       series_names=None, weighted=True):
+    """Run LOOCV and return (acc, sens, spec, auc, f1, fold_log)."""
     unique_patients = list(dict.fromkeys(groups))
     val_true, val_pred, val_prob = [], [], []
     fold_log = []
@@ -26,14 +33,17 @@ def run_patient_loocv(X, y, groups, feat_idx, clf_name,
         Xf_tr = X[train_mask][:, feat_idx]
         Xf_te = X[test_mask][:, feat_idx]
         y_tr  = y[train_mask]
+        # True label = majority label across all series of this patient
         true_label = int(np.round(y[test_mask].mean()))
 
+        # Fit scaler on train only — never leak test statistics
         scaler  = StandardScaler()
         Xf_tr_s = scaler.fit_transform(Xf_tr)
         Xf_te_s = scaler.transform(Xf_te)
         Xf_aug, y_aug = augment(Xf_tr_s, y_tr)
 
         if len(np.unique(y_aug)) < 2:
+            # Edge case: only one class in training fold
             only = int(y_aug[0])
             val_true.append(true_label); val_pred.append(only); val_prob.append(float(only))
             fold_log.append((patient, true_label, only, float(only)))

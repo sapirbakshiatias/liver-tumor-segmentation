@@ -1,5 +1,8 @@
 """
-Seaborn heatmap סטטי: שורות = סדרות, עמודות = פיצ'רים, ערכים Z-normalized.
+Static Seaborn heatmap: rows = series, columns = features, values = Z-scores.
+
+Each cell shows how far that series' feature value is from the group mean,
+making it easy to visually separate Cancer (red rows) from Healthy (green rows).
 """
 import numpy as np
 import pandas as pd
@@ -29,6 +32,7 @@ def plot_heatmap(df, feat_names, title, out_path):
         ax=ax, cbar_kws={"label": "Z-score", "shrink": 0.6},
         annot=True, fmt=".2f", annot_kws={"size": 6},
     )
+    # Color bar on the left indicating Cancer / Healthy
     for i, rc in enumerate(row_colors):
         ax.add_patch(plt.Rectangle((-0.35, i), 0.28, 1, color=rc, clip_on=False, zorder=3))
 
@@ -37,7 +41,8 @@ def plot_heatmap(df, feat_names, title, out_path):
         mpatches.Patch(color=COLOR_HEALTHY, label="Healthy"),
     ], loc="upper right", fontsize=8, bbox_to_anchor=(1.18, 1.02))
     ax.set_title(title, fontsize=13, fontweight="bold", pad=12)
-    ax.set_xlabel("Feature"); ax.set_ylabel("Series")
+    ax.set_xlabel("Feature")
+    ax.set_ylabel("Series")
     plt.tight_layout()
     plt.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close()

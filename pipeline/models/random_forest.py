@@ -1,12 +1,15 @@
 """
-Random Forest classifier.
+Random Forest classifier (100 trees, class-balanced).
 
-100 עצי החלטה. class_weight='balanced' מפצה על אי-שיווי מעמד (3 סרטן : 2 בריא).
-נכשל ב-Patient_VT כי כל עץ מחשב הסתברות חלקית — גם כשהכבד בריא מקבל 0.41.
+Why RF failed on Patient_VT: even when a series is clearly healthy,
+RF averages probability across all trees and gives ~0.41 for VT_s01.
+After 1/rank weighting this is still enough to cross the 0.5 threshold.
+Compare: KNN gives exactly 0.000 for the same series.
 """
 from sklearn.ensemble import RandomForestClassifier
 
 NAME = "RandomForest"
+
 
 def make_clf():
     return RandomForestClassifier(

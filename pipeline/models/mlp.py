@@ -1,13 +1,13 @@
 """
-Multi-Layer Perceptron (רשת נוירונים קלאסית).
+Multi-Layer Perceptron — two hidden layers (32 -> 16).
 
-שתי שכבות נסתרות: 32 נוירונים ואז 16.
-early_stopping: עוצר לפני overfitting לפי validation loss.
-validation_fraction=0.15: 15% מה-train לבדיקת עצירה מוקדמת.
+early_stopping monitors a 15% validation split and halts training
+when validation loss stops improving, preventing overfitting.
 """
 from sklearn.neural_network import MLPClassifier
 
 NAME = "MLP"
+
 
 def make_clf():
     return MLPClassifier(
